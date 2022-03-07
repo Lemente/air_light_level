@@ -6,15 +6,9 @@ dofile(modpath .. "/flood_light_level.lua")
 --dofile(modpath .. "/flood_light_level_debug.lua")
 
 local get_node = minetest.get_node
-local swap_node = minetest.swap_node --preserve metadatas
-local set_node = minetest.set_node --used to reset metadatas
+local set_node = minetest.set_node
 
---WIP
--- spread on the ceiling first
--- then spread downward
--- disappear if there is air above
--- when surrounded by "air_light_spread", become still version
--- create "outer layer" node?
+
 for i=1,13 do
     minetest.register_abm({
         label = "air light spreading" .. i,
@@ -24,23 +18,23 @@ for i=1,13 do
         chance = 1,
         catch_up = true,
         action = function(pos, node)
-            minetest.chat_send_all("ABM running for " .. tostring("air light spreading " .. i))
+--            minetest.chat_send_all("ABM running for " .. tostring("air light spreading " .. i))
                 local dirs = {
                     vector.new(pos.x+1,pos.y,pos.z),
                     vector.new(pos.x-1,pos.y,pos.z),
-                    vector.new(pos.x,pos.y+1,pos.z), --dirs[3] = up?
-                    vector.new(pos.x,pos.y-1,pos.z),
+                    vector.new(pos.x,pos.y+1,pos.z), --dirs[3] = up
+                    vector.new(pos.x,pos.y-1,pos.z), --dirs[4] = down
                     vector.new(pos.x,pos.y,pos.z+1),
                     vector.new(pos.x,pos.y,pos.z-1)
                 }
                 for v = 1, 6 do
                     if get_node(dirs[3]).name == "air" then --if there is an air node above then
-                        if get_node(dirs[4]).name == "air_light_level:" .. i then
-                            set_node(dirs[4],{name="flood_light_level:" .. i})
-                            minetest.chat_send_all("node below set to flood")
+                        if get_node(dirs[4]).name == "air_light_level:" .. i then --if node below is not flood type then
+                            set_node(dirs[4],{name="flood_light_level:" .. i}) --node below become flood node
+--                            minetest.chat_send_all("node below set to flood")
                         end
                         set_node(pos,{name="air"}) --turn self into air
-                        minetest.chat_send_all("node removed")
+--                        minetest.chat_send_all("node removed")
                     break
                     end
 
@@ -54,7 +48,7 @@ for i=1,13 do
                     end
                     if v == 6 and (get_node(dirs[3]).name == "flood_light_level:" .. i or get_node(dirs[3]).name == "air_light_level:" .. i) then --if end of loop and node above is flood type then
                         set_node(pos,{name="air_light_level:" .. i}) --become a still node
-                        minetest.chat_send_all("v == " .. tostring(v) .. " node become still")
+--                        minetest.chat_send_all("v == " .. tostring(v) .. " node become still")
                     end
 
                 end
